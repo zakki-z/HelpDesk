@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion — ONCF HelpDesk{% endblock %}
+
+{% block body_full %}
+<div class="d-flex min-vh-100">
+    {# Left panel — branding #}
+    <div class="d-none d-md-flex flex-column justify-content-center align-items-center" style="width:45%; background: var(--oncf-primary);">
+        <i class="bi bi-train-front-fill" style="font-size:4rem; color: var(--oncf-accent);"></i>
+        <h2 class="text-white mt-3 fw-bold">ONCF HelpDesk</h2>
+        <p class="text-white-50 mt-2" style="max-width:300px; text-align:center; font-size:0.9rem;">
+            Plateforme de gestion des incidents et équipements informatiques
+        </p>
+    </div>
+
+    {# Right panel — login form #}
+    <div class="flex-grow-1 d-flex align-items-center justify-content-center" style="background: var(--oncf-light);">
+        <div style="width: 100%; max-width: 380px; padding: 2rem;">
+            <div class="d-md-none text-center mb-4">
+                <i class="bi bi-train-front-fill" style="font-size:2.5rem; color: var(--oncf-primary);"></i>
+                <h4 class="mt-2 fw-bold" style="color: var(--oncf-primary);">ONCF HelpDesk</h4>
+            </div>
+
+            <h5 class="mb-1">Connexion</h5>
+            <p class="text-muted mb-4" style="font-size:0.85rem;">Entrez vos identifiants pour accéder à votre espace</p>
+
+            {% if error %}
+                <div class="alert alert-danger py-2" style="font-size:0.85rem;">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            {% endif %}
+
+            <form method="post">
+                <div class="mb-3">
+                    <label for="username" class="form-label" style="font-size:0.85rem;">Email</label>
+                    <input type="email" id="email" name="_username" value="{{ last_username }}"
+                           class="form-control" placeholder="votre.email@oncf.ma" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label" style="font-size:0.85rem;">Mot de passe</label>
+                    <input type="password" id="password" name="_password"
+                           class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <button type="submit" class="btn btn-oncf w-100 py-2 mt-2">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Se connecter
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

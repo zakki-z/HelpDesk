@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord — ONCF HelpDesk{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block body %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card p-3">
+            <div class="d-flex align-items-center">
+                <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+                     style="width:48px; height:48px; background: rgba(26,58,92,0.1); color: var(--oncf-primary);">
+                    <i class="bi bi-people-fill" style="font-size:1.3rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.75rem;">Personnel</div>
+                    <div class="fw-bold" style="font-size:1.4rem;">{{ total_personnel }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3">
+            <div class="d-flex align-items-center">
+                <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+                     style="width:48px; height:48px; background: rgba(232,168,56,0.15); color: var(--oncf-accent);">
+                    <i class="bi bi-pc-display" style="font-size:1.3rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.75rem;">Équipements</div>
+                    <div class="fw-bold" style="font-size:1.4rem;">{{ total_equipements }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3">
+            <div class="d-flex align-items-center">
+                <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+                     style="width:48px; height:48px; background: rgba(25,135,84,0.1); color: #198754;">
+                    <i class="bi bi-ticket-detailed" style="font-size:1.3rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.75rem;">Tickets</div>
+                    <div class="fw-bold" style="font-size:1.4rem;">{{ total_tickets }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-4">
+    <h6 class="text-muted mb-3">Bienvenue, {{ app.user.prenom }}</h6>
+    <p style="font-size:0.9rem;">
+        Utilisez la barre de navigation à gauche pour accéder aux différentes sections.
+        {% if is_granted('ROLE_RESPONSABLE') %}
+            En tant que responsable, vous pouvez gérer le personnel et les équipements.
+        {% elseif is_granted('ROLE_TECHNICIEN') %}
+            En tant que technicien, vous pouvez consulter les équipements et traiter les tickets.
+        {% else %}
+            Vous pouvez consulter les équipements et créer des tickets.
+        {% endif %}
+    </p>
+</div>
+{% endblock %}

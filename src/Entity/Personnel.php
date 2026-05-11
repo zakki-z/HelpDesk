@@ -7,12 +7,14 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
 #[ORM\InheritanceType('JOINED')]
 #[ORM\DiscriminatorColumn(name: 'dtype', type: 'string')]
 #[ORM\DiscriminatorMap(['personnel' => Personnel::class, 'technicien' => Technicien::class, 'responsable' => Responsable::class])]
-class Personnel
+class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -30,6 +32,12 @@ class Personnel
 
     #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $password = null;
+
+    #[ORM\Column(type: 'json')]
+    private array $roles = [];
 
     #[ORM\Column(length: 255)]
     private ?string $fonction = null;
@@ -111,6 +119,44 @@ class Personnel
         return $this;
     }
 
+    // --- UserInterface methods ---
+
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
+        return $this;
+    }
+
+    public function eraseCredentials(): void
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+    }
+
+    // --- End UserInterface methods ---
+
     public function getFonction(): ?string
     {
         return $this->fonction;
@@ -174,5 +220,15 @@ class Personnel
     public function getMouvementsStock(): Collection
     {
         return $this->mouvementsStock;
+    }
+
+    public function getNomComplet(): string
+    {
+        return $this->prenom . ' ' . $this->nom;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getNomComplet();
     }
 }

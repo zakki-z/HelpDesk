@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Personnel — ONCF HelpDesk{% endblock %}
+{% block page_title %}Gestion du personnel{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div></div>
+    <div class="dropdown">
+        <button class="btn btn-accent dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-plus-lg me-1"></i> Nouveau
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ path('app_personnel_new', {type: 'personnel'}) }}">Personnel</a></li>
+            <li><a class="dropdown-item" href="{{ path('app_personnel_new', {type: 'technicien'}) }}">Technicien</a></li>
+            <li><a class="dropdown-item" href="{{ path('app_personnel_new', {type: 'responsable'}) }}">Responsable</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead style="background: var(--oncf-light);">
+                <tr>
+                    <th style="font-size:0.8rem;">Matricule</th>
+                    <th style="font-size:0.8rem;">Nom complet</th>
+                    <th style="font-size:0.8rem;">Email</th>
+                    <th style="font-size:0.8rem;">Fonction</th>
+                    <th style="font-size:0.8rem;">Type</th>
+                    <th style="font-size:0.8rem;">Date embauche</th>
+                    <th style="font-size:0.8rem; text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in personnels %}
+                <tr>
+                    <td style="font-size:0.85rem;"><code>{{ p.matricule }}</code></td>
+                    <td style="font-size:0.85rem;">{{ p.nomComplet }}</td>
+                    <td style="font-size:0.85rem;">{{ p.email }}</td>
+                    <td style="font-size:0.85rem;">{{ p.fonction }}</td>
+                    <td style="font-size:0.85rem;">
+                        {% if p is instanceof('App\\Entity\\Technicien') %}
+                            <span class="badge bg-info badge-role">Technicien</span>
+                        {% elseif p is instanceof('App\\Entity\\Responsable') %}
+                            <span class="badge bg-warning text-dark badge-role">Responsable</span>
+                        {% else %}
+                            <span class="badge bg-secondary badge-role">Personnel</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.85rem;">{{ p.dateEmbauche|date('d/m/Y') }}</td>
+                    <td class="text-end">
+                        <a href="{{ path('app_personnel_show', {id: p.id}) }}" class="btn btn-sm btn-outline-secondary" title="Voir">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ path('app_personnel_edit', {id: p.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifier">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="post" action="{{ path('app_personnel_delete', {id: p.id}) }}" class="d-inline"
+                              onsubmit="return confirm('Supprimer ce personnel ?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ p.id) }}">
+                            <button class="btn btn-sm btn-outline-danger" title="Supprimer"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Aucun personnel enregistré.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

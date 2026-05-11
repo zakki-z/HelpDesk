@@ -1,0 +1,55 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+<div class="row">
+    <div class="col-md-6 mb-3">{{ form_row(form.matricule) }}</div>
+    <div class="col-md-6 mb-3">{{ form_row(form.email) }}</div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">{{ form_row(form.nom) }}</div>
+    <div class="col-md-6 mb-3">{{ form_row(form.prenom) }}</div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">{{ form_row(form.fonction) }}</div>
+    <div class="col-md-6 mb-3">{{ form_row(form.date_embauche) }}</div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        {{ form_row(form.plainPassword, {
+            label: is_edit ? 'Nouveau mot de passe (laisser vide pour garder l\'actuel)' : 'Mot de passe',
+            required: not is_edit
+        }) }}
+    </div>
+</div>
+
+{% if type == 'technicien' %}
+<hr class="my-3">
+<h6 class="mb-3 text-muted" style="font-size:0.85rem;">Informations technicien</h6>
+<div class="row">
+    <div class="col-md-4 mb-3">{{ form_row(form.specialite) }}</div>
+    <div class="col-md-4 mb-3">{{ form_row(form.niveau_competence) }}</div>
+    <div class="col-md-4 mb-3 d-flex align-items-end">{{ form_row(form.disponible) }}</div>
+</div>
+{% endif %}
+
+{% if type == 'responsable' %}
+<hr class="my-3">
+<h6 class="mb-3 text-muted" style="font-size:0.85rem;">Informations responsable</h6>
+<div class="row">
+    <div class="col-md-6 mb-3">{{ form_row(form.service) }}</div>
+    <div class="col-md-6 mb-3">{{ form_row(form.date_nomination) }}</div>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between mt-3">
+    <a href="{{ path('app_personnel_index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Retour
+    </a>
+    <button type="submit" class="btn btn-oncf">
+        <i class="bi bi-check-lg me-1"></i> {{ is_edit ? 'Sauvegarder' : 'Enregistrer' }}
+    </button>
+</div>
+
+{{ form_end(form) }}

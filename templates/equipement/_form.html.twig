@@ -1,0 +1,15 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+<div class="mb-3">{{ form_row(form.nom) }}</div>
+<div class="mb-3">{{ form_row(form.type) }}</div>
+
+<div class="d-flex justify-content-between mt-3">
+    <a href="{{ path('app_equipement_index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Retour
+    </a>
+    <button type="submit" class="btn btn-oncf">
+        <i class="bi bi-check-lg me-1"></i> {{ is_edit ? 'Sauvegarder' : 'Enregistrer' }}
+    </button>
+</div>
+
+{{ form_end(form) }}

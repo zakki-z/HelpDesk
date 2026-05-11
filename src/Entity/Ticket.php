@@ -218,4 +218,48 @@ class Ticket
     {
         return $this->interventions;
     }
+
+    public function addHistoriquesTicket(HistoriqueTicket $historiquesTicket): static
+    {
+        if (!$this->historiquesTicket->contains($historiquesTicket)) {
+            $this->historiquesTicket->add($historiquesTicket);
+            $historiquesTicket->setTicket($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistoriquesTicket(HistoriqueTicket $historiquesTicket): static
+    {
+        if ($this->historiquesTicket->removeElement($historiquesTicket)) {
+            // set the owning side to null (unless already changed)
+            if ($historiquesTicket->getTicket() === $this) {
+                $historiquesTicket->setTicket(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addIntervention(Intervention $intervention): static
+    {
+        if (!$this->interventions->contains($intervention)) {
+            $this->interventions->add($intervention);
+            $intervention->setTicket($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIntervention(Intervention $intervention): static
+    {
+        if ($this->interventions->removeElement($intervention)) {
+            // set the owning side to null (unless already changed)
+            if ($intervention->getTicket() === $this) {
+                $intervention->setTicket(null);
+            }
+        }
+
+        return $this;
+    }
 }
