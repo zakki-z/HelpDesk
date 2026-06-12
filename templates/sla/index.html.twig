@@ -1,0 +1,111 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}SLA — ONCF HelpDesk{% endblock %}
+{% block page_title %}Gestion des SLA{% endblock %}
+
+{% block body %}
+
+{# ── Stats ────────────────────────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card text-center">
+            <div class="text-muted mb-1" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">Tickets totaux</div>
+            <div class="fw-bold fs-3">{{ stats.total }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card text-center">
+            <div class="text-muted mb-1" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">Taux de respect</div>
+            <div class="fw-bold fs-3 {{ stats.taux_respect >= 80 ? 'text-success' : (stats.taux_respect >= 60 ? 'text-warning' : 'text-danger') }}">
+                {{ stats.taux_respect }}%
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card text-center">
+            <div class="text-muted mb-1" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">En dépassement</div>
+            <div class="fw-bold fs-3 {{ stats.en_retard > 0 ? 'text-danger' : 'text-success' }}">{{ stats.en_retard }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card text-center">
+            <div class="text-muted mb-1" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">Temps moyen résolution</div>
+            <div class="fw-bold fs-3">{{ stats.temps_moyen is not null ? stats.temps_moyen ~ 'h' : '—' }}</div>
+        </div>
+    </div>
+</div>
+
+{# Compliance bar #}
+<div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between mb-2" style="font-size:0.83rem;">
+        <span>Conformité SLA globale</span>
+        <span class="fw-semibold">{{ stats.taux_respect }}%</span>
+    </div>
+    <div class="progress" style="height: 12px; border-radius:6px;">
+        <div class="progress-bar {{ stats.taux_respect >= 80 ? 'bg-success' : (stats.taux_respect >= 60 ? 'bg-warning' : 'bg-danger') }}"
+             style="width: {{ stats.taux_respect }}%; border-radius:6px;"></div>
+    </div>
+    <div class="d-flex justify-content-between mt-1" style="font-size:0.72rem; color: #aaa;">
+        <span>0%</span><span>50%</span><span>80% ✓</span><span>100%</span>
+    </div>
+</div>
+
+{# ── SLA rules table ───────────────────────────────────────────────────── #}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="fw-semibold" style="font-size:0.85rem; color: var(--oncf-primary);">Règles SLA définies</div>
+    <a href="{{ path('app_sla_new') }}" class="btn btn-accent btn-sm">
+        <i class="bi bi-plus-lg me-1"></i> Nouvelle règle
+    </a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:0.85rem;">
+            <thead style="background: var(--oncf-light);">
+                <tr>
+                    <th style="font-size:0.78rem;">#</th>
+                    <th style="font-size:0.78rem;">Temps max réponse</th>
+                    <th style="font-size:0.78rem;">Temps max résolution</th>
+                    <th style="font-size:0.78rem;">Tickets associés</th>
+                    <th class="text-end" style="font-size:0.78rem;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sla in slas %}
+                <tr>
+                    <td class="text-muted">#{{ sla.id }}</td>
+                    <td>
+                        <i class="bi bi-clock me-1 text-muted"></i>
+                        <strong>{{ sla.tempsMaxReponse }}h</strong>
+                    </td>
+                    <td>
+                        <i class="bi bi-hourglass-split me-1 text-muted"></i>
+                        <strong>{{ sla.tempsMaxResolution }}h</strong>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ sla.tickets|length }} ticket(s)</span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ path('app_sla_edit', {id: sla.id}) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="post" action="{{ path('app_sla_delete', {id: sla.id}) }}" class="d-inline"
+                              onsubmit="return confirm('Supprimer cette règle SLA ?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ sla.id) }}">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-5">
+                        <i class="bi bi-speedometer2 d-block mb-2" style="font-size:2rem;"></i>
+                        Aucune règle SLA définie.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

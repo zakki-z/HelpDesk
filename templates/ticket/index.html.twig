@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tickets — ONCF HelpDesk{% endblock %}
+{% block page_title %}Tickets{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <form method="get" class="d-flex gap-2 flex-wrap">
+        <input type="text" name="q" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Rechercher…" style="width:180px;">
+        <select name="statut" class="form-select form-select-sm" style="width:140px;" onchange="this.form.submit()">
+            <option value="">Tous les statuts</option>
+            {% for key, label in statuts %}
+                <option value="{{ key }}" {{ current_statut == key ? 'selected' }}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="priorite" class="form-select form-select-sm" style="width:130px;" onchange="this.form.submit()">
+            <option value="">Toutes priorités</option>
+            {% for key, label in priorites %}
+                <option value="{{ key }}" {{ current_priorite == key ? 'selected' }}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-sm btn-oncf"><i class="bi bi-search"></i></button>
+        {% if current_statut or current_priorite or search %}
+            <a href="{{ path('app_ticket_index') }}" class="btn btn-sm btn-outline-secondary">Effacer</a>
+        {% endif %}
+    </form>
+
+    <a href="{{ path('app_ticket_new') }}" class="btn btn-accent btn-sm">
+        <i class="bi bi-plus-lg me-1"></i> Nouveau ticket
+    </a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:0.85rem;">
+            <thead style="background: var(--oncf-light);">
+                <tr>
+                    <th style="font-size:0.78rem;">#</th>
+                    <th style="font-size:0.78rem;">Description</th>
+                    <th style="font-size:0.78rem;">Priorité</th>
+                    <th style="font-size:0.78rem;">Statut</th>
+                    <th style="font-size:0.78rem;">Équipement</th>
+                    <th style="font-size:0.78rem;">Créé par</th>
+                    <th style="font-size:0.78rem;">Date</th>
+                    <th style="font-size:0.78rem;">SLA</th>
+                    <th class="text-end" style="font-size:0.78rem;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr class="{{ ticket.isEnRetard() ? 'table-danger' : '' }}">
+                    <td class="text-muted">#{{ ticket.id }}</td>
+                    <td style="max-width: 280px;">
+                        <div class="text-truncate">{{ ticket.description }}</div>
+                    </td>
+                    <td><span class="badge priorite-{{ ticket.priorite }}">{{ ticket.getPrioriteLabel() }}</span></td>
+                    <td><span class="badge statut-{{ ticket.statut }}">{{ ticket.getStatutLabel() }}</span></td>
+                    <td>
+                        {% if ticket.equipement %}
+                            <span class="text-muted">{{ ticket.equipement.nom }}</span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ ticket.creePar.nomComplet }}</td>
+                    <td>{{ ticket.dateCreation|date('d/m/Y') }}</td>
+                    <td>
+                        {% if ticket.sla %}
+                            {% if ticket.isEnRetard() %}
+                                <i class="bi bi-exclamation-circle-fill sla-breach" title="SLA dépassé"></i>
+                                <span class="sla-breach" style="font-size:0.78rem;">{{ ticket.getHeuresOuverture() }}h / {{ ticket.sla.tempsMaxResolution }}h</span>
+                            {% else %}
+                                <i class="bi bi-check-circle sla-ok"></i>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" class="btn btn-xs btn-outline-secondary btn-sm" title="Voir">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        {% if is_granted('ROLE_RESPONSABLE') %}
+                        <form method="post" action="{{ path('app_ticket_delete', {id: ticket.id}) }}" class="d-inline"
+                              onsubmit="return confirm('Supprimer ce ticket ?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ ticket.id) }}">
+                            <button class="btn btn-sm btn-outline-danger" title="Supprimer"><i class="bi bi-trash"></i></button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-5">
+                        <i class="bi bi-inbox d-block mb-2" style="font-size:2rem;"></i>
+                        Aucun ticket trouvé.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

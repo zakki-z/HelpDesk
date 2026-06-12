@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Interventions — ONCF HelpDesk{% endblock %}
+{% block page_title %}Interventions{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:0.85rem;">
+            <thead style="background: var(--oncf-light);">
+                <tr>
+                    <th style="font-size:0.78rem;">#</th>
+                    <th style="font-size:0.78rem;">Ticket</th>
+                    <th style="font-size:0.78rem;">Technicien</th>
+                    <th style="font-size:0.78rem;">Début</th>
+                    <th style="font-size:0.78rem;">Fin</th>
+                    <th style="font-size:0.78rem;">Durée</th>
+                    <th style="font-size:0.78rem;">Statut</th>
+                    <th class="text-end" style="font-size:0.78rem;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for interv in interventions %}
+                <tr>
+                    <td class="text-muted">#{{ interv.id }}</td>
+                    <td>
+                        <a href="{{ path('app_ticket_show', {id: interv.ticket.id}) }}" class="text-decoration-none">
+                            Ticket #{{ interv.ticket.id }}
+                            <span class="badge statut-{{ interv.ticket.statut }} ms-1">{{ interv.ticket.getStatutLabel() }}</span>
+                        </a>
+                    </td>
+                    <td>{{ interv.technicien.nomComplet }}</td>
+                    <td>{{ interv.dateDebut|date('d/m/Y H:i') }}</td>
+                    <td>{{ interv.dateFin ? interv.dateFin|date('d/m/Y H:i') : '—' }}</td>
+                    <td>{{ interv.getDureeHeures() is not null ? interv.getDureeHeures() ~ 'h' : '—' }}</td>
+                    <td>
+                        {% if interv.isEnCours() %}
+                            <span class="badge bg-success" style="font-size:0.72rem;">En cours</span>
+                        {% else %}
+                            <span class="badge bg-secondary" style="font-size:0.72rem;">Clôturée</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ path('app_intervention_show', {id: interv.id}) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-5">
+                        <i class="bi bi-tools d-block mb-2" style="font-size:2rem;"></i>
+                        Aucune intervention enregistrée.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

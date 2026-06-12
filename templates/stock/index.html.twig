@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Stock — ONCF HelpDesk{% endblock %}
+{% block page_title %}Gestion du stock{% endblock %}
+
+{% block body %}
+
+{% if articles_critiques|length > 0 %}
+<div class="card p-3 mb-3 border-start border-warning border-3" style="font-size:0.83rem;">
+    <div class="fw-semibold mb-1" style="color:#856404;">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ articles_critiques|length }} article(s) en stock critique
+    </div>
+    <div class="text-muted">Ces articles sont en dessous de leur seuil minimum.</div>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="{{ path('app_stock_new') }}" class="btn btn-accent btn-sm">
+        <i class="bi bi-plus-lg me-1"></i> Nouvel article
+    </a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:0.85rem;">
+            <thead style="background: var(--oncf-light);">
+                <tr>
+                    <th style="font-size:0.78rem;">Article</th>
+                    <th style="font-size:0.78rem;">Quantité</th>
+                    <th style="font-size:0.78rem;">Seuil minimum</th>
+                    <th style="font-size:0.78rem;">Statut</th>
+                    <th class="text-end" style="font-size:0.78rem;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in stocks %}
+                {% set critique = s.quantite <= s.seuilMin %}
+                <tr class="{{ critique ? 'table-warning' : '' }}">
+                    <td class="fw-semibold">{{ s.nomArticle }}</td>
+                    <td>
+                        <span class="{{ critique ? 'text-danger fw-bold' : '' }}">{{ s.quantite }}</span>
+                    </td>
+                    <td class="text-muted">{{ s.seuilMin }}</td>
+                    <td>
+                        {% if critique %}
+                            <span class="badge bg-warning text-dark" style="font-size:0.72rem;">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>Critique
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success" style="font-size:0.72rem;">OK</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ path('app_stock_show', {id: s.id}) }}" class="btn btn-sm btn-outline-secondary" title="Voir">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ path('app_stock_edit', {id: s.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifier">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="post" action="{{ path('app_stock_delete', {id: s.id}) }}" class="d-inline"
+                              onsubmit="return confirm('Supprimer cet article ?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ s.id) }}">
+                            <button class="btn btn-sm btn-outline-danger" title="Supprimer"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-5">
+                        <i class="bi bi-archive d-block mb-2" style="font-size:2rem;"></i>
+                        Aucun article en stock.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -36,81 +36,33 @@ class Intervention
     /**
      * @var Collection<int, LigneIntervention>
      */
-    #[ORM\OneToMany(targetEntity: LigneIntervention::class, mappedBy: 'intervention')]
+    #[ORM\OneToMany(targetEntity: LigneIntervention::class, mappedBy: 'intervention', cascade: ['remove'])]
     private Collection $lignesIntervention;
 
     public function __construct()
     {
         $this->lignesIntervention = new ArrayCollection();
+        $this->date_debut         = new \DateTime();
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function getDateDebut(): ?\DateTimeInterface
-    {
-        return $this->date_debut;
-    }
+    public function getDateDebut(): ?\DateTimeInterface { return $this->date_debut; }
+    public function setDateDebut(\DateTimeInterface $d): static { $this->date_debut = $d; return $this; }
 
-    public function setDateDebut(\DateTimeInterface $date_debut): static
-    {
-        $this->date_debut = $date_debut;
-        return $this;
-    }
+    public function getDateFin(): ?\DateTimeInterface { return $this->date_fin; }
+    public function setDateFin(?\DateTimeInterface $d): static { $this->date_fin = $d; return $this; }
 
-    public function getDateFin(): ?\DateTimeInterface
-    {
-        return $this->date_fin;
-    }
+    public function getCommentaire(): ?string { return $this->commentaire; }
+    public function setCommentaire(?string $c): static { $this->commentaire = $c; return $this; }
 
-    public function setDateFin(?\DateTimeInterface $date_fin): static
-    {
-        $this->date_fin = $date_fin;
-        return $this;
-    }
+    public function getTicket(): ?Ticket { return $this->ticket; }
+    public function setTicket(?Ticket $t): static { $this->ticket = $t; return $this; }
 
-    public function getCommentaire(): ?string
-    {
-        return $this->commentaire;
-    }
+    public function getTechnicien(): ?Technicien { return $this->technicien; }
+    public function setTechnicien(?Technicien $t): static { $this->technicien = $t; return $this; }
 
-    public function setCommentaire(?string $commentaire): static
-    {
-        $this->commentaire = $commentaire;
-        return $this;
-    }
-
-    public function getTicket(): ?Ticket
-    {
-        return $this->ticket;
-    }
-
-    public function setTicket(?Ticket $ticket): static
-    {
-        $this->ticket = $ticket;
-        return $this;
-    }
-
-    public function getTechnicien(): ?Technicien
-    {
-        return $this->technicien;
-    }
-
-    public function setTechnicien(?Technicien $technicien): static
-    {
-        $this->technicien = $technicien;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, LigneIntervention>
-     */
-    public function getLignesIntervention(): Collection
-    {
-        return $this->lignesIntervention;
-    }
+    public function getLignesIntervention(): Collection { return $this->lignesIntervention; }
 
     public function addLigneIntervention(LigneIntervention $ligne): static
     {
@@ -123,11 +75,20 @@ class Intervention
 
     public function removeLigneIntervention(LigneIntervention $ligne): static
     {
-        if ($this->lignesIntervention->removeElement($ligne)) {
-            if ($ligne->getIntervention() === $this) {
-                $ligne->setIntervention(null);
-            }
+        if ($this->lignesIntervention->removeElement($ligne) && $ligne->getIntervention() === $this) {
+            $ligne->setIntervention(null);
         }
         return $this;
+    }
+
+    public function isEnCours(): bool
+    {
+        return $this->date_fin === null;
+    }
+
+    public function getDureeHeures(): ?float
+    {
+        if (!$this->date_fin) return null;
+        return round(($this->date_fin->getTimestamp() - $this->date_debut->getTimestamp()) / 3600, 1);
     }
 }

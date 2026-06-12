@@ -12,98 +12,114 @@
             --oncf-secondary: #2c5f8a;
             --oncf-accent: #e8a838;
             --oncf-light: #f4f6f9;
+            --oncf-danger: #dc3545;
         }
         body { background: var(--oncf-light); min-height: 100vh; }
         .sidebar {
-            width: 250px;
-            min-height: 100vh;
+            width: 250px; min-height: 100vh;
             background: var(--oncf-primary);
-            position: fixed;
-            top: 0; left: 0;
-            z-index: 100;
+            position: fixed; top: 0; left: 0; z-index: 100;
         }
         .sidebar .brand {
             padding: 1.2rem 1rem;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            color: var(--oncf-accent);
-            font-weight: 700;
-            font-size: 1.1rem;
+            color: var(--oncf-accent); font-weight: 700; font-size: 1.1rem;
         }
         .sidebar .nav-link {
-            color: rgba(255,255,255,0.7);
-            padding: 0.6rem 1rem;
-            font-size: 0.9rem;
-            border-left: 3px solid transparent;
-            transition: all 0.15s;
+            color: rgba(255,255,255,0.7); padding: 0.6rem 1rem;
+            font-size: 0.9rem; border-left: 3px solid transparent;
+            transition: all 0.15s; display: flex; align-items: center;
         }
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            color: #fff;
-            background: rgba(255,255,255,0.08);
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: #fff; background: rgba(255,255,255,0.08);
             border-left-color: var(--oncf-accent);
         }
-        .sidebar .nav-link i { width: 24px; text-align: center; margin-right: 8px; }
+        .sidebar .nav-link i { width: 24px; text-align: center; margin-right: 8px; flex-shrink: 0; }
         .sidebar .nav-section {
-            color: rgba(255,255,255,0.4);
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 1rem 1rem 0.3rem;
+            color: rgba(255,255,255,0.4); font-size: 0.7rem;
+            text-transform: uppercase; letter-spacing: 1px; padding: 1rem 1rem 0.3rem;
         }
-        .main-content { margin-left: 250px; padding: 0; }
+        .sidebar .badge-nav {
+            margin-left: auto; font-size: 0.65rem;
+            background: var(--oncf-accent); color: var(--oncf-primary);
+        }
+        .main-content { margin-left: 250px; }
         .topbar {
-            background: #fff;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 0.7rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: #fff; border-bottom: 1px solid #e0e0e0;
+            padding: 0.7rem 1.5rem; display: flex;
+            justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 50;
         }
-        .topbar .user-info { font-size: 0.9rem; color: #555; }
+        .topbar h5 { color: var(--oncf-primary); }
+        .topbar .user-info { font-size: 0.85rem; color: #888; }
         .content-area { padding: 1.5rem; }
-        .card { border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .btn-oncf {
-            background: var(--oncf-primary);
-            color: #fff;
-            border: none;
-        }
+        .card { border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-radius: 8px; }
+        .btn-oncf { background: var(--oncf-primary); color: #fff; border: none; }
         .btn-oncf:hover { background: var(--oncf-secondary); color: #fff; }
-        .btn-accent {
-            background: var(--oncf-accent);
-            color: var(--oncf-primary);
-            border: none;
-            font-weight: 600;
-        }
+        .btn-accent { background: var(--oncf-accent); color: var(--oncf-primary); border: none; font-weight: 600; }
         .btn-accent:hover { background: #d4952e; color: #fff; }
-        .badge-role {
-            font-size: 0.7rem;
-            padding: 0.25em 0.6em;
-        }
+        .badge-role { font-size: 0.7rem; padding: 0.25em 0.6em; }
+
+        /* Statut badges */
+        .statut-ouvert    { background: #e3f2fd; color: #1565c0; }
+        .statut-assigne   { background: #fff3e0; color: #e65100; }
+        .statut-en_cours  { background: #e8f5e9; color: #2e7d32; }
+        .statut-resolu    { background: #f3e5f5; color: #6a1b9a; }
+        .statut-ferme     { background: #eceff1; color: #546e7a; }
+
+        /* Priority badges */
+        .priorite-faible   { background: #e8f5e9; color: #388e3c; }
+        .priorite-normale  { background: #e3f2fd; color: #1976d2; }
+        .priorite-haute    { background: #fff3e0; color: #f57c00; }
+        .priorite-critique { background: #fce4ec; color: #c62828; }
+
+        .sla-ok      { color: #2e7d32; }
+        .sla-warning { color: #f57c00; }
+        .sla-breach  { color: #c62828; font-weight: 600; }
+
+        .stat-card { border-radius: 10px; padding: 1rem 1.2rem; }
+        .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
     </style>
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
     {% if app.user %}
-    {# --- Sidebar --- #}
     <nav class="sidebar d-flex flex-column">
-        <div class="brand">
-            <i class="bi bi-train-front-fill"></i> ONCF HelpDesk
-        </div>
+        <div class="brand"><i class="bi bi-train-front-fill"></i> ONCF HelpDesk</div>
         <div class="flex-grow-1 py-2">
+
             <div class="nav-section">Principal</div>
-            <a href="{{ path('app_dashboard') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'active' }}">
+            <a href="{{ path('app_dashboard') }}" class="nav-link {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}">
                 <i class="bi bi-grid-1x2"></i> Tableau de bord
             </a>
 
-            <div class="nav-section">Gestion</div>
-            <a href="/equipement" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_equipement' ? 'active' }}">
+            <div class="nav-section">Helpdesk</div>
+            <a href="{{ path('app_ticket_index') }}" class="nav-link {% if app.request.attributes.get('_route') starts with 'app_ticket' %}active{% endif %}">
+                <i class="bi bi-ticket-detailed"></i> Tickets
+            </a>
+            {% if is_granted('ROLE_TECHNICIEN') %}
+            <a href="{{ path('app_intervention_index') }}" class="nav-link {% if app.request.attributes.get('_route') starts with 'app_intervention' %}active{% endif %}">
+                <i class="bi bi-tools"></i> Interventions
+            </a>
+            {% endif %}
+
+            <div class="nav-section">Inventaire</div>
+            <a href="{{ path('app_equipement_index') }}" class="nav-link {% if app.request.attributes.get('_route') starts with 'app_equipement' %}active{% endif %}">
                 <i class="bi bi-pc-display"></i> Équipements
             </a>
+            {% if is_granted('ROLE_RESPONSABLE') %}
+            <a href="{{ path('app_stock_index') }}" class="nav-link {% if app.request.attributes.get('_route') starts with 'app_stock' %}active{% endif %}">
+                <i class="bi bi-archive"></i> Stock pièces
+            </a>
+            {% endif %}
 
             {% if is_granted('ROLE_RESPONSABLE') %}
             <div class="nav-section">Administration</div>
-            <a href="/personnel" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_personnel' ? 'active' }}">
+            <a href="{{ path('app_personnel_index') }}" class="nav-link {% if app.request.attributes.get('_route') starts with 'app_personnel' %}active{% endif %}">
                 <i class="bi bi-people"></i> Personnel
+            </a>
+            <a href="{{ path('app_sla_index') }}" class="nav-link {% if app.request.attributes.get('_route') starts with 'app_sla' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i> SLA
             </a>
             {% endif %}
         </div>
@@ -111,35 +127,32 @@
         <div class="p-3 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
             <div class="d-flex align-items-center text-white" style="font-size:0.85rem;">
                 <i class="bi bi-person-circle me-2" style="font-size:1.3rem;"></i>
-                <div class="flex-grow-1">
-                    <div>{{ app.user.nomComplet }}</div>
+                <div class="flex-grow-1 overflow-hidden">
+                    <div class="text-truncate">{{ app.user.nomComplet }}</div>
                     <div style="font-size:0.7rem; opacity:0.5;">{{ app.user.fonction }}</div>
                 </div>
-                <a href="{{ path('app_logout') }}" class="text-white-50" title="Déconnexion">
+                <a href="{{ path('app_logout') }}" class="text-white-50 ms-2" title="Déconnexion">
                     <i class="bi bi-box-arrow-right"></i>
                 </a>
             </div>
         </div>
     </nav>
 
-    {# --- Main content --- #}
     <div class="main-content">
         <div class="topbar">
-            <h5 class="mb-0">{% block page_title %}Tableau de bord{% endblock %}</h5>
-            <div class="user-info">
-                {{ "now"|date("d/m/Y") }}
-            </div>
+            <h5 class="mb-0 fw-semibold">{% block page_title %}Tableau de bord{% endblock %}</h5>
+            <div class="user-info">{{ "now"|date("d/m/Y") }}</div>
         </div>
         <div class="content-area">
             {% for type, messages in app.flashes %}
                 {% for message in messages %}
-                    <div class="alert alert-{{ type == 'success' ? 'success' : (type == 'error' ? 'danger' : 'info') }} alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{{ type == 'success' ? 'success' : (type == 'error' ? 'danger' : 'info') }} alert-dismissible fade show py-2" style="font-size:0.875rem;" role="alert">
+                        <i class="bi bi-{{ type == 'success' ? 'check-circle' : 'exclamation-circle' }} me-1"></i>
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 {% endfor %}
             {% endfor %}
-
             {% block body %}{% endblock %}
         </div>
     </div>

@@ -1,14 +1,14 @@
 security:
     password_hashers:
         App\Entity\Personnel:
-            #option 1 : plaintext 7it kan inserew direct f base données -> donc password makahsouch ythasha w nkhdmo ghi b plaintext fl phase d dev
-            #option 2 : ndiro auto w nmchiw nhashiw chi password (bycrypt)  w hia li inserwha f base données !
             algorithm: auto
+
     providers:
         app_user_provider:
             entity:
                 class: App\Entity\Personnel
                 property: email
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -24,10 +24,9 @@ security:
             logout:
                 path: app_logout
                 target: app_login
-            # remember me
             remember_me:
                 secret: '%kernel.secret%'
-                lifetime: 604800 # 1 week in seconds
+                lifetime: 604800
                 path: /
                 always_remember_me: false
 
@@ -40,11 +39,13 @@ security:
         # Public routes
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/logout, roles: PUBLIC_ACCESS }
-        # Admin routes
+        # Admin-only routes
         - { path: ^/personnel, roles: ROLE_RESPONSABLE }
-        # Protected routes - tout utilisateur connecté
+        - { path: ^/sla, roles: ROLE_RESPONSABLE }
+        - { path: ^/stock, roles: ROLE_RESPONSABLE }
+        # Technician routes
+        - { path: ^/intervention, roles: ROLE_TECHNICIEN }
+        # All authenticated users
         - { path: ^/equipement, roles: ROLE_USER }
         - { path: ^/ticket, roles: ROLE_USER }
-        - { path: ^/intervention, roles: ROLE_TECHNICIEN }
-        - { path: ^/stock, roles: ROLE_RESPONSABLE }
         - { path: ^/, roles: ROLE_USER }

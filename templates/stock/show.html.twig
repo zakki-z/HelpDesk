@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ stock.nomArticle }} — Stock ONCF HelpDesk{% endblock %}
+{% block page_title %}Stock : {{ stock.nomArticle }}{% endblock %}
+
+{% block body %}
+<div class="row g-3">
+    <div class="col-lg-7">
+
+        <div class="card p-4 mb-3">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h5 class="mb-1">{{ stock.nomArticle }}</h5>
+                    {% if stock.quantite <= stock.seuilMin %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Stock critique
+                        </span>
+                    {% else %}
+                        <span class="badge bg-success">Stock OK</span>
+                    {% endif %}
+                </div>
+                <a href="{{ path('app_stock_edit', {id: stock.id}) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil me-1"></i> Modifier
+                </a>
+            </div>
+            <div class="row text-center">
+                <div class="col-6 border-end">
+                    <div class="text-muted" style="font-size:0.75rem;">Quantité actuelle</div>
+                    <div class="fw-bold fs-2 {{ stock.quantite <= stock.seuilMin ? 'text-danger' : 'text-success' }}">
+                        {{ stock.quantite }}
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="text-muted" style="font-size:0.75rem;">Seuil minimum</div>
+                    <div class="fw-bold fs-2 text-muted">{{ stock.seuilMin }}</div>
+                </div>
+            </div>
+        </div>
+
+        {# Movement form #}
+        <div class="card p-3 mb-3">
+            <div class="fw-semibold mb-3" style="font-size:0.83rem; color: var(--oncf-primary);">
+                <i class="bi bi-arrow-left-right me-1"></i> Enregistrer un mouvement
+            </div>
+            <form method="post" action="{{ path('app_stock_mouvement', {id: stock.id}) }}" class="d-flex gap-2 flex-wrap align-items-end">
+                <div>
+                    <label class="form-label mb-1" style="font-size:0.8rem;">Type</label>
+                    <select name="type" class="form-select form-select-sm" style="width:130px;">
+                        <option value="entree">Entrée ↑</option>
+                        <option value="sortie">Sortie ↓</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label mb-1" style="font-size:0.8rem;">Quantité</label>
+                    <input type="number" name="quantite" value="1" min="1" class="form-control form-control-sm" style="width:90px;">
+                </div>
+                <button type="submit" class="btn btn-sm btn-oncf">
+                    <i class="bi bi-check-lg me-1"></i> Valider
+                </button>
+            </form>
+        </div>
+
+        {# Movement history #}
+        <div class="card p-3">
+            <div class="fw-semibold mb-3" style="font-size:0.83rem; color: var(--oncf-primary);">
+                <i class="bi bi-clock-history me-1"></i> Historique des mouvements ({{ stock.mouvements|length }})
+            </div>
+            {% for m in stock.mouvements|reverse %}
+            <div class="d-flex align-items-center gap-3 py-2 border-bottom" style="font-size:0.82rem;">
+                <div class="stat-icon flex-shrink-0" style="width:32px; height:32px; border-radius:6px; font-size:0.9rem;
+                    background: {{ m.type == 'entree' ? 'rgba(25,135,84,0.1)' : 'rgba(220,53,69,0.1)' }};
+                    color: {{ m.type == 'entree' ? '#198754' : '#dc3545' }};">
+                    <i class="bi bi-arrow-{{ m.type == 'entree' ? 'up' : 'down' }}-circle-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <span class="{{ m.type == 'entree' ? 'text-success' : 'text-danger' }} fw-semibold">
+                        {{ m.type == 'entree' ? '+' : '−' }}{{ m.quantite }}
+                    </span>
+                    <span class="text-muted ms-1">par {{ m.effectuePar.nomComplet }}</span>
+                </div>
+                <div class="text-muted" style="font-size:0.75rem;">{{ m.dateMouvement|date('d/m/Y H:i') }}</div>
+            </div>
+            {% else %}
+            <div class="text-muted text-center py-3" style="font-size:0.83rem;">Aucun mouvement enregistré.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card p-3">
+            <div class="fw-semibold mb-2" style="font-size:0.83rem; color: var(--oncf-primary);">
+                <i class="bi bi-wrench me-1"></i> Utilisé dans des interventions
+            </div>
+            {% if stock.lignesIntervention|length > 0 %}
+            {% for ligne in stock.lignesIntervention %}
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:0.82rem;">
+                <a href="{{ path('app_intervention_show', {id: ligne.intervention.id}) }}" class="text-decoration-none">
+                    Intervention #{{ ligne.intervention.id }}
+                </a>
+                <span class="badge bg-light text-dark border">× {{ ligne.quantiteUtilisee }}</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-muted text-center py-3" style="font-size:0.83rem;">Pas encore utilisé.</div>
+            {% endif %}
+        </div>
+
+        <a href="{{ path('app_stock_index') }}" class="btn btn-outline-secondary btn-sm w-100 mt-3">
+            <i class="bi bi-arrow-left me-1"></i> Retour au stock
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ticket #{{ ticket.id }} — ONCF HelpDesk{% endblock %}
+{% block page_title %}Ticket #{{ ticket.id }}{% endblock %}
+
+{% block body %}
+<div class="row g-3">
+
+    {# ── Main panel ──────────────────────────────────────────────────────── #}
+    <div class="col-lg-8">
+
+        {# Header card #}
+        <div class="card p-4 mb-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                <div>
+                    <span class="badge priorite-{{ ticket.priorite }} me-2">{{ ticket.getPrioriteLabel() }}</span>
+                    <span class="badge statut-{{ ticket.statut }}">{{ ticket.getStatutLabel() }}</span>
+                    {% if ticket.isEnRetard() %}
+                        <span class="badge bg-danger ms-2"><i class="bi bi-exclamation-triangle-fill me-1"></i>SLA dépassé</span>
+                    {% endif %}
+                </div>
+                <div class="text-muted" style="font-size:0.8rem;">
+                    Créé le {{ ticket.dateCreation|date('d/m/Y à H:i') }}
+                    par <strong>{{ ticket.creePar.nomComplet }}</strong>
+                </div>
+            </div>
+
+            <p style="font-size:0.9rem; line-height:1.6; white-space:pre-wrap;">{{ ticket.description }}</p>
+
+            {% if ticket.equipement %}
+            <div class="d-flex align-items-center gap-2 mt-2 p-2 rounded" style="background: var(--oncf-light); font-size:0.83rem;">
+                <i class="bi bi-pc-display text-muted"></i>
+                <span>Équipement : <strong>{{ ticket.equipement.nom }}</strong> ({{ ticket.equipement.type|capitalize }})</span>
+            </div>
+            {% endif %}
+
+            {% if ticket.panne %}
+            <div class="d-flex align-items-center gap-2 mt-2 p-2 rounded" style="background: var(--oncf-light); font-size:0.83rem;">
+                <i class="bi bi-bug text-muted"></i>
+                <span>Panne : <strong>{{ ticket.panne.typePanne }}</strong> — gravité {{ ticket.panne.gravite }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Status change buttons — technician / responsable #}
+        {% if is_granted('ROLE_TECHNICIEN') and ticket.statut not in ['ferme'] %}
+        <div class="card p-3 mb-3">
+            <div class="fw-semibold mb-2" style="font-size:0.83rem; color: var(--oncf-primary);">
+                <i class="bi bi-arrow-right-circle me-1"></i> Changer le statut
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                {% for key, label in statuts %}
+                    {% if key != ticket.statut %}
+                    <form method="post" action="{{ path('app_ticket_statut', {id: ticket.id}) }}">
+                        <input type="hidden" name="statut" value="{{ key }}">
+                        <button class="btn btn-sm badge statut-{{ key }}" style="border: none; padding: 0.35em 0.75em; font-size:0.8rem; cursor:pointer;">
+                            → {{ label }}
+                        </button>
+                    </form>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# Interventions list #}
+        <div class="card p-3 mb-3">
+            <div class="fw-semibold mb-3" style="font-size:0.83rem; color: var(--oncf-primary);">
+                <i class="bi bi-tools me-1"></i> Interventions ({{ ticket.interventions|length }})
+            </div>
+            {% for interv in ticket.interventions %}
+            <div class="d-flex align-items-start gap-3 py-2 border-bottom">
+                <div class="stat-icon flex-shrink-0" style="width:36px; height:36px; border-radius:8px; background: rgba(44,95,138,0.1); color:var(--oncf-secondary); font-size:1rem;">
+                    <i class="bi bi-wrench"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold" style="font-size:0.83rem;">{{ interv.technicien.nomComplet }}</div>
+                    {% if interv.commentaire %}
+                    <div class="text-muted" style="font-size:0.8rem;">{{ interv.commentaire }}</div>
+                    {% endif %}
+                    <div class="text-muted" style="font-size:0.75rem;">
+                        Début : {{ interv.dateDebut|date('d/m/Y H:i') }}
+                        {% if interv.dateFin %}
+                            — Fin : {{ interv.dateFin|date('d/m/Y H:i') }} ({{ interv.getDureeHeures() }}h)
+                        {% else %}
+                            <span class="badge bg-success ms-1" style="font-size:0.65rem;">En cours</span>
+                        {% endif %}
+                    </div>
+                    {% if interv.lignesIntervention|length > 0 %}
+                    <div class="mt-1" style="font-size:0.75rem; color:#888;">
+                        Pièces utilisées :
+                        {% for ligne in interv.lignesIntervention %}
+                            {{ ligne.stock.nomArticle }} ×{{ ligne.quantiteUtilisee }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% if is_granted('ROLE_TECHNICIEN') and interv.isEnCours() %}
+                <a href="{{ path('app_intervention_show', {id: interv.id}) }}" class="btn btn-sm btn-outline-secondary">
+                    Gérer
+                </a>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-muted text-center py-3" style="font-size:0.83rem;">Aucune intervention enregistrée.</div>
+            {% endfor %}
+        </div>
+
+        {# Add intervention form — technician only #}
+        {% if is_granted('ROLE_TECHNICIEN') and intervention_form and ticket.statut not in ['resolu','ferme'] %}
+        <div class="card p-3 mb-3">
+            <div class="fw-semibold mb-3" style="font-size:0.83rem; color: var(--oncf-primary);">
+                <i class="bi bi-plus-circle me-1"></i> Démarrer une intervention
+            </div>
+            {{ form_start(intervention_form, {'attr': {'novalidate': 'novalidate'}}) }}
+            <div class="row">
+                <div class="col-md-6 mb-3">{{ form_row(intervention_form.technicien) }}</div>
+                <div class="col-md-6 mb-3">{{ form_row(intervention_form.commentaire) }}</div>
+            </div>
+            <button type="submit" class="btn btn-oncf btn-sm">
+                <i class="bi bi-play-fill me-1"></i> Démarrer
+            </button>
+            {{ form_end(intervention_form) }}
+        </div>
+        {% endif %}
+
+        {# Historique #}
+        {% if ticket.historiquesTicket|length > 0 %}
+        <div class="card p-3">
+            <div class="fw-semibold mb-3" style="font-size:0.83rem; color: var(--oncf-primary);">
+                <i class="bi bi-clock-history me-1"></i> Historique des modifications
+            </div>
+            {% for h in ticket.historiquesTicket %}
+            <div class="d-flex align-items-center gap-2 py-1 border-bottom" style="font-size:0.8rem;">
+                <span class="text-muted">{{ h.dateModification|date('d/m H:i') }}</span>
+                <span>Champ <strong>{{ h.champModifie }}</strong> :</span>
+                <span class="text-muted">{{ h.ancienneValeur }}</span>
+                <i class="bi bi-arrow-right text-muted"></i>
+                <strong>{{ h.nouvelleValeur }}</strong>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    {# ── Side panel ──────────────────────────────────────────────────────── #}
+    <div class="col-lg-4">
+
+        {# SLA card #}
+        {% if ticket.sla %}
+        <div class="card p-3 mb-3">
+            <div class="fw-semibold mb-3" style="font-size:0.83rem; color: var(--oncf-primary);">
+                <i class="bi bi-speedometer2 me-1"></i> SLA
+            </div>
+            <div class="row text-center g-0">
+                <div class="col-6 border-end">
+                    <div class="text-muted mb-1" style="font-size:0.72rem;">Temps réponse max</div>
+                    <div class="fw-bold" style="font-size:1.3rem;">{{ ticket.sla.tempsMaxReponse }}h</div>
+                </div>
+                <div class="col-6">
+                    <div class="text-muted mb-1" style="font-size:0.72rem;">Résolution max</div>
+                    <div class="fw-bold {% if ticket.isEnRetard() %}text-danger{% endif %}" style="font-size:1.3rem;">
+                        {{ ticket.sla.tempsMaxResolution }}h
+                    </div>
+                </div>
+            </div>
+            <hr class="my-2">
+            <div class="text-center" style="font-size:0.82rem;">
+                Ouvert depuis :
+                <strong class="{{ ticket.isEnRetard() ? 'sla-breach' : 'sla-ok' }}">
+                    {{ ticket.getHeuresOuverture() }}h
+                </strong>
+                {% if ticket.isEnRetard() %}
+                <div class="text-danger" style="font-size:0.75rem; margin-top:4px;">
+                    <i class="bi bi-exclamation-triangle-fill"></i> SLA dépassé de {{ (ticket.getHeuresOuverture() - ticket.sla.tempsMaxResolution)|round(1) }}h
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# Assign responsable — admin only #}
+        {% if is_granted('ROLE_RESPONSABLE') %}
+        <div class="card p-3 mb-3">
+            <div class="fw-semibold mb-2" style="font-size:0.83rem; color: var(--oncf-primary);">
+                <i class="bi bi-person-check me-1"></i> Responsable
+            </div>
+            {% if ticket.traiteePar %}
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-person-circle text-muted"></i>
+                    <span style="font-size:0.83rem;">{{ ticket.traiteePar.nomComplet }}</span>
+                </div>
+            {% else %}
+                <div class="text-muted mb-2" style="font-size:0.83rem;">Non assigné</div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# Dates summary #}
+        <div class="card p-3 mb-3">
+            <div class="fw-semibold mb-2" style="font-size:0.83rem; color: var(--oncf-primary);">
+                <i class="bi bi-calendar3 me-1"></i> Dates
+            </div>
+            <div style="font-size:0.82rem;">
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Création</span>
+                    <span>{{ ticket.dateCreation|date('d/m/Y H:i') }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Résolution</span>
+                    <span>{{ ticket.dateResolution ? ticket.dateResolution|date('d/m/Y H:i') : '—' }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                    <span class="text-muted">Fermeture</span>
+                    <span>{{ ticket.dateFermeture ? ticket.dateFermeture|date('d/m/Y H:i') : '—' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <a href="{{ path('app_ticket_index') }}" class="btn btn-outline-secondary btn-sm w-100">
+            <i class="bi bi-arrow-left me-1"></i> Retour à la liste
+        </a>
+    </div>
+
+</div>
+{% endblock %}

@@ -4,62 +4,218 @@
 {% block page_title %}Tableau de bord{% endblock %}
 
 {% block body %}
+
+{# ── Top KPI Cards ─────────────────────────────────────────────────────── #}
+{% if is_granted('ROLE_RESPONSABLE') %}
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card p-3">
-            <div class="d-flex align-items-center">
-                <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
-                     style="width:48px; height:48px; background: rgba(26,58,92,0.1); color: var(--oncf-primary);">
-                    <i class="bi bi-people-fill" style="font-size:1.3rem;"></i>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background: rgba(26,58,92,0.1); color: var(--oncf-primary);">
+                    <i class="bi bi-people-fill"></i>
                 </div>
                 <div>
-                    <div class="text-muted" style="font-size:0.75rem;">Personnel</div>
-                    <div class="fw-bold" style="font-size:1.4rem;">{{ total_personnel }}</div>
+                    <div class="text-muted" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">Personnel</div>
+                    <div class="fw-bold fs-4">{{ total_personnel }}</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card p-3">
-            <div class="d-flex align-items-center">
-                <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
-                     style="width:48px; height:48px; background: rgba(232,168,56,0.15); color: var(--oncf-accent);">
-                    <i class="bi bi-pc-display" style="font-size:1.3rem;"></i>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background: rgba(232,168,56,0.15); color: var(--oncf-accent);">
+                    <i class="bi bi-pc-display"></i>
                 </div>
                 <div>
-                    <div class="text-muted" style="font-size:0.75rem;">Équipements</div>
-                    <div class="fw-bold" style="font-size:1.4rem;">{{ total_equipements }}</div>
+                    <div class="text-muted" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">Équipements</div>
+                    <div class="fw-bold fs-4">{{ total_equipements }}</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card p-3">
-            <div class="d-flex align-items-center">
-                <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
-                     style="width:48px; height:48px; background: rgba(25,135,84,0.1); color: #198754;">
-                    <i class="bi bi-ticket-detailed" style="font-size:1.3rem;"></i>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background: rgba(25,135,84,0.1); color: #198754;">
+                    <i class="bi bi-ticket-detailed"></i>
                 </div>
                 <div>
-                    <div class="text-muted" style="font-size:0.75rem;">Tickets</div>
-                    <div class="fw-bold" style="font-size:1.4rem;">{{ total_tickets }}</div>
+                    <div class="text-muted" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">Tickets total</div>
+                    <div class="fw-bold fs-4">{{ total_tickets }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background: rgba(220,53,69,0.1); color: #dc3545;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">SLA en retard</div>
+                    <div class="fw-bold fs-4 {{ tickets_en_retard|length > 0 ? 'text-danger' : '' }}">{{ tickets_en_retard|length }}</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card p-4">
-    <h6 class="text-muted mb-3">Bienvenue, {{ app.user.prenom }}</h6>
-    <p style="font-size:0.9rem;">
-        Utilisez la barre de navigation à gauche pour accéder aux différentes sections.
-        {% if is_granted('ROLE_RESPONSABLE') %}
-            En tant que responsable, vous pouvez gérer le personnel et les équipements.
-        {% elseif is_granted('ROLE_TECHNICIEN') %}
-            En tant que technicien, vous pouvez consulter les équipements et traiter les tickets.
-        {% else %}
-            Vous pouvez consulter les équipements et créer des tickets.
-        {% endif %}
-    </p>
+{# ── Admin: tickets by status + recent ─────────────────────────────────── #}
+<div class="row g-3 mb-4">
+    <div class="col-md-5">
+        <div class="card p-3 h-100">
+            <div class="fw-semibold mb-3" style="font-size:0.85rem; color: var(--oncf-primary);">
+                <i class="bi bi-bar-chart me-1"></i> Tickets par statut
+            </div>
+            {% for statut, label in constant('App\\Entity\\Ticket::STATUTS') %}
+            {% set count = tickets_par_statut[statut] ?? 0 %}
+            {% set pct = total_tickets > 0 ? ((count / total_tickets) * 100)|round : 0 %}
+            <div class="mb-2">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="badge statut-{{ statut }}" style="font-size:0.75rem;">{{ label }}</span>
+                    <span style="font-size:0.8rem; color:#666;">{{ count }}</span>
+                </div>
+                <div class="progress" style="height: 5px;">
+                    <div class="progress-bar" style="width: {{ pct }}%; background: var(--oncf-secondary);"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="fw-semibold" style="font-size:0.85rem; color: var(--oncf-primary);">
+                    <i class="bi bi-clock-history me-1"></i> Tickets récents
+                </div>
+                <a href="{{ path('app_ticket_index') }}" class="text-decoration-none" style="font-size:0.78rem;">Voir tous →</a>
+            </div>
+            <div style="font-size:0.82rem;">
+                {% for ticket in tickets_recents %}
+                <div class="d-flex align-items-center gap-2 py-2 border-bottom">
+                    <span class="badge priorite-{{ ticket.priorite }}" style="font-size:0.65rem; width:60px; text-align:center;">{{ ticket.getPrioriteLabel() }}</span>
+                    <div class="flex-grow-1 text-truncate">{{ ticket.description|slice(0, 60) }}{% if ticket.description|length > 60 %}…{% endif %}</div>
+                    <span class="badge statut-{{ ticket.statut }}">{{ ticket.getStatutLabel() }}</span>
+                </div>
+                {% else %}
+                <div class="text-muted text-center py-3">Aucun ticket.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
+
+{# ── SLA breaches warning ──────────────────────────────────────────────── #}
+{% if tickets_en_retard|length > 0 %}
+<div class="card p-3 mb-4 border-start border-danger border-3">
+    <div class="fw-semibold text-danger mb-2" style="font-size:0.85rem;">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i> Tickets en dépassement SLA ({{ tickets_en_retard|length }})
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0" style="font-size:0.82rem;">
+            <thead><tr><th>#</th><th>Priorité</th><th>Créé par</th><th>Ouvert depuis</th><th></th></tr></thead>
+            <tbody>
+            {% for ticket in tickets_en_retard %}
+            <tr>
+                <td>#{{ ticket.id }}</td>
+                <td><span class="badge priorite-{{ ticket.priorite }}">{{ ticket.getPrioriteLabel() }}</span></td>
+                <td>{{ ticket.creePar.nomComplet }}</td>
+                <td class="text-danger">{{ ticket.getHeuresOuverture() }}h</td>
+                <td><a href="{{ path('app_ticket_show', {id: ticket.id}) }}" class="btn btn-xs btn-outline-secondary btn-sm">Voir</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ── Stock alert ───────────────────────────────────────────────────────── #}
+{% if articles_en_alerte|length > 0 %}
+<div class="card p-3 mb-4 border-start border-warning border-3">
+    <div class="fw-semibold" style="font-size:0.85rem; color: #856404;">
+        <i class="bi bi-archive me-1"></i> Articles en stock critique ({{ articles_en_alerte|length }})
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-2">
+        {% for s in articles_en_alerte %}
+        <a href="{{ path('app_stock_show', {id: s.id}) }}" class="badge bg-warning text-dark text-decoration-none">
+            {{ s.nomArticle }} — {{ s.quantite }} restants
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+
+{# ── Employee / Technician view ────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
+    {% for statut, label in constant('App\\Entity\\Ticket::STATUTS') %}
+    {% set count = mes_tickets_par_statut[statut] ?? 0 %}
+    <div class="col-6 col-md">
+        <div class="card stat-card text-center">
+            <div class="fw-bold fs-4 {{ count > 0 and statut not in ['resolu','ferme'] ? 'text-primary' : '' }}">{{ count }}</div>
+            <div><span class="badge statut-{{ statut }}" style="font-size:0.72rem;">{{ label }}</span></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="fw-semibold" style="font-size:0.85rem; color: var(--oncf-primary);">
+                    <i class="bi bi-ticket-detailed me-1"></i> Mes tickets récents
+                </div>
+                <a href="{{ path('app_ticket_new') }}" class="btn btn-accent btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i> Nouveau ticket
+                </a>
+            </div>
+            {% for ticket in mes_tickets %}
+            <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" class="text-decoration-none">
+                <div class="d-flex align-items-center gap-2 py-2 border-bottom">
+                    <span class="badge priorite-{{ ticket.priorite }}" style="font-size:0.65rem; width:65px; text-align:center;">{{ ticket.getPrioriteLabel() }}</span>
+                    <div class="flex-grow-1 text-truncate text-dark" style="font-size:0.83rem;">
+                        {{ ticket.description|slice(0, 70) }}{% if ticket.description|length > 70 %}…{% endif %}
+                    </div>
+                    <span class="badge statut-{{ ticket.statut }}">{{ ticket.getStatutLabel() }}</span>
+                </div>
+            </a>
+            {% else %}
+            <div class="text-muted text-center py-4" style="font-size:0.85rem;">
+                <i class="bi bi-inbox d-block mb-2" style="font-size:1.5rem;"></i>
+                Aucun ticket. <a href="{{ path('app_ticket_new') }}">Créer le premier</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if is_granted('ROLE_TECHNICIEN') and interventions_en_cours|length > 0 %}
+    <div class="col-md-5">
+        <div class="card p-3">
+            <div class="fw-semibold mb-3" style="font-size:0.85rem; color: var(--oncf-primary);">
+                <i class="bi bi-tools me-1"></i> Mes interventions en cours ({{ interventions_en_cours|length }})
+            </div>
+            {% for interv in interventions_en_cours %}
+            <a href="{{ path('app_intervention_show', {id: interv.id}) }}" class="text-decoration-none">
+                <div class="d-flex align-items-start gap-2 py-2 border-bottom">
+                    <i class="bi bi-wrench text-muted mt-1"></i>
+                    <div>
+                        <div class="text-dark" style="font-size:0.83rem;">Ticket #{{ interv.ticket.id }}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">Depuis {{ interv.dateDebut|date('d/m H:i') }}</div>
+                    </div>
+                    <span class="badge bg-success ms-auto" style="font-size:0.65rem;">En cours</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endif %}
 {% endblock %}
