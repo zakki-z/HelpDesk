@@ -10,7 +10,7 @@
                 <i class="bi bi-info-circle me-1"></i>
                 Définissez les délais maximum acceptables pour répondre et résoudre un incident.
             </div>
-            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            {{ form_start(form) }}
             <div class="mb-3">{{ form_row(form.temps_max_reponse) }}</div>
             <div class="mb-3">{{ form_row(form.temps_max_resolution) }}</div>
             <div class="d-flex justify-content-between">

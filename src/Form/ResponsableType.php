@@ -8,6 +8,8 @@ use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 class ResponsableType extends AbstractType
 {
@@ -15,21 +17,22 @@ class ResponsableType extends AbstractType
     {
         $builder
             ->add('service', TextType::class, [
-                'label' => 'Service',
-                'attr' => ['placeholder' => 'Ex: Direction SI, Maintenance...'],
+                'label'       => 'Service',
+                'required'    => true,
+                'constraints' => [new NotBlank(message: 'Le service est obligatoire.')],
+                'attr'        => ['placeholder' => 'Ex: Direction SI, Maintenance...'],
             ])
             ->add('date_nomination', DateType::class, [
-                'label' => 'Date de nomination',
-                'widget' => 'single_text',
-            ])
-        ;
+                'label'       => 'Date de nomination',
+                'widget'      => 'single_text',
+                'required'    => true,
+                'constraints' => [new NotNull(message: 'La date de nomination est obligatoire.')],
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'data_class' => Responsable::class,
-        ]);
+        $resolver->setDefaults(['data_class' => Responsable::class]);
     }
 
     public function getParent(): string

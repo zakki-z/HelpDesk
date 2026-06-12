@@ -9,6 +9,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class TechnicienType extends AbstractType
 {
@@ -16,30 +17,31 @@ class TechnicienType extends AbstractType
     {
         $builder
             ->add('specialite', TextType::class, [
-                'label' => 'Spécialité',
-                'attr' => ['placeholder' => 'Ex: Réseau, Imprimantes, PC...'],
+                'label'       => 'Spécialité',
+                'required'    => true,
+                'constraints' => [new NotBlank(message: 'La spécialité est obligatoire.')],
+                'attr'        => ['placeholder' => 'Ex: Réseau, Imprimantes, PC...'],
             ])
             ->add('niveau_competence', ChoiceType::class, [
-                'label' => 'Niveau de compétence',
-                'choices' => [
-                    'Junior' => 'junior',
+                'label'       => 'Niveau de compétence',
+                'required'    => true,
+                'constraints' => [new NotBlank(message: 'Le niveau de compétence est obligatoire.')],
+                'choices'     => [
+                    'Junior'        => 'junior',
                     'Intermédiaire' => 'intermediaire',
-                    'Senior' => 'senior',
-                    'Expert' => 'expert',
+                    'Senior'        => 'senior',
+                    'Expert'        => 'expert',
                 ],
             ])
             ->add('disponible', CheckboxType::class, [
-                'label' => 'Disponible',
+                'label'    => 'Disponible',
                 'required' => false,
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'data_class' => Technicien::class,
-        ]);
+        $resolver->setDefaults(['data_class' => Technicien::class]);
     }
 
     public function getParent(): string

@@ -48,17 +48,15 @@ class PersonnelController extends AbstractController
             default => PersonnelType::class,
         };
 
-        $form = $this->createForm($formClass, $entity);
+        $form = $this->createForm($formClass, $entity, ['is_edit' => false]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Hash the plain password
             $plainPassword = $form->get('plainPassword')->getData();
             if ($plainPassword) {
                 $entity->setPassword($hasher->hashPassword($entity, $plainPassword));
             }
 
-            // Set roles based on type
             $roles = match ($type) {
                 'technicien' => ['ROLE_TECHNICIEN'],
                 'responsable' => ['ROLE_RESPONSABLE'],
@@ -106,7 +104,7 @@ class PersonnelController extends AbstractController
             default => 'personnel',
         };
 
-        $form = $this->createForm($formClass, $personnel);
+        $form = $this->createForm($formClass, $personnel, ['is_edit' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -122,9 +120,9 @@ class PersonnelController extends AbstractController
         }
 
         return $this->render('personnel/edit.html.twig', [
-            'form' => $form,
+            'form'      => $form,
             'personnel' => $personnel,
-            'type' => $type,
+            'type'      => $type,
         ]);
     }
 

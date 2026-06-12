@@ -1,4 +1,4 @@
-{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+{{ form_start(form) }}
 
 <div class="row">
     <div class="col-md-6 mb-3">{{ form_row(form.matricule) }}</div>
@@ -16,12 +16,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-6 mb-3">
-        {{ form_row(form.plainPassword, {
-            label: is_edit ? 'Nouveau mot de passe (laisser vide pour garder l\'actuel)' : 'Mot de passe',
-            required: not is_edit
-        }) }}
-    </div>
+    <div class="col-md-6 mb-3">{{ form_row(form.plainPassword) }}</div>
 </div>
 
 {% if type == 'technicien' %}

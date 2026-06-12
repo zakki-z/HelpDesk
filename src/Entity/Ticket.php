@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TicketRepository::class)]
 class Ticket
@@ -41,61 +42,54 @@ class Ticket
     private ?\DateTimeInterface $date_fermeture = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: 'Le statut est obligatoire.')]
     private ?string $statut = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: 'La priorité est obligatoire.')]
+    #[Assert\Choice(choices: ['faible', 'normale', 'haute', 'critique'], message: 'Priorité invalide.')]
     private ?string $priorite = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: 'La description est obligatoire.')]
+    #[Assert\Length(min: 10, minMessage: 'La description doit contenir au moins {{ limit }} caractères.')]
     private ?string $description = null;
 
-    // crée (Personnel 1,1 -- 0,N Ticket)
     #[ORM\ManyToOne(targetEntity: Personnel::class, inversedBy: 'ticketsCrees')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Personnel $creePar = null;
 
-    // modifié_par (Personnel 0,N -- 0,N Ticket)
     #[ORM\ManyToMany(targetEntity: Personnel::class, inversedBy: 'ticketsModifies')]
     #[ORM\JoinTable(name: 'ticket_modifie_par')]
     private Collection $modifiePar;
 
-    // traitée_par (Responsable 0,N -- 1,1 Ticket) – nullable so tickets can be unassigned initially
     #[ORM\ManyToOne(targetEntity: Responsable::class, inversedBy: 'ticketsTraites')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Responsable $traiteePar = null;
 
-    // concerne (Ticket 0,N -- 1,1 Panne)
     #[ORM\ManyToOne(targetEntity: Panne::class, inversedBy: 'tickets')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Panne $panne = null;
 
-    // respecte (Ticket 0,N -- 1,1 SLA)
     #[ORM\ManyToOne(targetEntity: SLA::class, inversedBy: 'tickets')]
     #[ORM\JoinColumn(nullable: true)]
     private ?SLA $sla = null;
 
-    // concerne (Ticket 0,N -- 1,1 Equipement)
     #[ORM\ManyToOne(targetEntity: Equipement::class, inversedBy: 'tickets')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Equipement $equipement = null;
 
-    /**
-     * @var Collection<int, HistoriqueTicket>
-     */
     #[ORM\OneToMany(targetEntity: HistoriqueTicket::class, mappedBy: 'ticket', cascade: ['remove'])]
     private Collection $historiquesTicket;
 
-    /**
-     * @var Collection<int, Intervention>
-     */
     #[ORM\OneToMany(targetEntity: Intervention::class, mappedBy: 'ticket', cascade: ['remove'])]
     private Collection $interventions;
 
     public function __construct()
     {
-        $this->modifiePar       = new ArrayCollection();
+        $this->modifiePar        = new ArrayCollection();
         $this->historiquesTicket = new ArrayCollection();
-        $this->interventions    = new ArrayCollection();
+        $this->interventions     = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -175,8 +169,6 @@ class Ticket
         }
         return $this;
     }
-
-    // ---- Helpers ----
 
     public function getStatutLabel(): string
     {

@@ -8,6 +8,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class EquipementType extends AbstractType
 {
@@ -15,27 +16,28 @@ class EquipementType extends AbstractType
     {
         $builder
             ->add('nom', TextType::class, [
-                'label' => 'Nom de l\'équipement',
-                'attr' => ['placeholder' => 'Ex: Imprimante HP LaserJet Pro'],
+                'label'       => 'Nom de l\'équipement',
+                'required'    => true,
+                'constraints' => [new NotBlank(message: 'Le nom est obligatoire.')],
+                'attr'        => ['placeholder' => 'Ex: Imprimante HP LaserJet Pro'],
             ])
             ->add('type', ChoiceType::class, [
-                'label' => 'Type',
-                'choices' => [
+                'label'       => 'Type',
+                'required'    => true,
+                'constraints' => [new NotBlank(message: 'Le type est obligatoire.')],
+                'choices'     => [
                     'Ordinateur' => 'ordinateur',
                     'Imprimante' => 'imprimante',
-                    'Réseau' => 'reseau',
-                    'Téléphone' => 'telephone',
-                    'Serveur' => 'serveur',
-                    'Autre' => 'autre',
+                    'Réseau'     => 'reseau',
+                    'Téléphone'  => 'telephone',
+                    'Serveur'    => 'serveur',
+                    'Autre'      => 'autre',
                 ],
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'data_class' => Equipement::class,
-        ]);
+        $resolver->setDefaults(['data_class' => Equipement::class]);
     }
 }

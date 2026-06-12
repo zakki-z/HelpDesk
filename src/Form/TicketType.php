@@ -12,6 +12,8 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Length;
 
 class TicketType extends AbstractType
 {
@@ -19,11 +21,23 @@ class TicketType extends AbstractType
     {
         $builder
             ->add('description', TextareaType::class, [
-                'label' => 'Description du problème',
-                'attr'  => ['rows' => 4, 'placeholder' => 'Décrivez le problème en détail...'],
+                'label'       => 'Description du problème',
+                'required'    => true,
+                'constraints' => [
+                    new NotBlank(message: 'La description est obligatoire.'),
+                    new Length(min: 10, minMessage: 'La description doit contenir au moins {{ limit }} caractères.'),
+                ],
+                'attr' => [
+                    'rows'        => 4,
+                    'placeholder' => 'Décrivez le problème en détail...',
+                ],
             ])
             ->add('priorite', ChoiceType::class, [
-                'label'   => 'Priorité',
+                'label'       => 'Priorité',
+                'required'    => true,
+                'constraints' => [
+                    new NotBlank(message: 'La priorité est obligatoire.'),
+                ],
                 'choices' => array_flip(Ticket::PRIORITES),
             ])
             ->add('equipement', EntityType::class, [
